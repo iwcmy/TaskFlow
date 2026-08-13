@@ -11,5 +11,9 @@ namespace TaskFlow.Api.Data
         }
 
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Proyecto> Proyectos { get; set; }
+        public DbSet<MiembroProyecto> MiembrosProyecto { get; set; }
+        public DbSet<Tarea> Tareas { get; set; }
+        public DbSet<Comentario> Comentarios { get; set; }
     }
 }
