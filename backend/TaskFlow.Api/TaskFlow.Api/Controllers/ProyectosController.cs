@@ -23,6 +23,12 @@ namespace TaskFlow.Api.Controllers
         private int UsuarioActualId =>
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+           private async Task<MiembroProyecto?> ObtenerMembresia(int proyectoId, int usuarioId)
+{
+    return await _context.MiembrosProyecto
+        .FirstOrDefaultAsync(mp => mp.ProyectoId == proyectoId && mp.UsuarioId == usuarioId);
+}
+
         [HttpGet]
         public async Task<ActionResult<List<ProyectoDto>>> Listar()
         {
@@ -62,5 +68,43 @@ namespace TaskFlow.Api.Controllers
 
             return Ok(new ProyectoDto(proyecto.Id, proyecto.Nombre, proyecto.Descripcion, RolProyecto.Admin.ToString()));
         }
+
+        [HttpPost("{proyectoId}/miembros")]
+        public async Task<IActionResult> AgregarMiembro(int proyectoId, AgregarMiembroDto dto)
+        {
+            var usuarioActualId = UsuarioActualId;
+
+            var miembroActual = await ObtenerMembresia(proyectoId, UsuarioActualId);
+
+            if (miembroActual is null)
+                return NotFound("Proyecto no encontrado o no pertenecés a él.");
+
+            if (miembroActual.Rol != RolProyecto.Admin)
+                return Forbid();
+
+            var usuarioAAgregar = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Email == dto.EmailUsuario);
+
+            if (usuarioAAgregar is null)
+                return BadRequest("No existe un usuario con ese email.");
+
+            var yaEsMiembro = await _context.MiembrosProyecto
+                .AnyAsync(mp => mp.ProyectoId == proyectoId && mp.UsuarioId == usuarioAAgregar.Id);
+
+            if (yaEsMiembro)
+                return BadRequest("Ese usuario ya es miembro del proyecto.");
+
+            _context.MiembrosProyecto.Add(new MiembroProyecto
+            {
+                ProyectoId = proyectoId,
+                UsuarioId = usuarioAAgregar.Id,
+                Rol = dto.Rol
+            });
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
     }
+
+
 }
