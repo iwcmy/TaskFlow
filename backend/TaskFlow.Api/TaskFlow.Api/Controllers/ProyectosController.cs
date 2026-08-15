@@ -104,6 +104,50 @@ namespace TaskFlow.Api.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpPut("{proyectoId}")]
+        public async Task<IActionResult> Editar(int proyectoId, CrearProyectoDto dto)
+        {
+            var miembroActual = await ObtenerMembresia(proyectoId, UsuarioActualId);
+
+            if (miembroActual is null)
+                return NotFound("Proyecto no encontrado o no pertenecés a él.");
+
+            if (miembroActual.Rol != RolProyecto.Admin)
+                return Forbid();
+
+            var proyecto = await _context.Proyectos.FindAsync(proyectoId);
+            if (proyecto is null)
+                return NotFound();
+
+            proyecto.Nombre = dto.Nombre;
+            proyecto.Descripcion = dto.Descripcion;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{proyectoId}")]
+        public async Task<IActionResult> Eliminar(int proyectoId)
+        {
+            var miembroActual = await ObtenerMembresia(proyectoId, UsuarioActualId);
+
+            if (miembroActual is null)
+                return NotFound("Proyecto no encontrado o no pertenecés a él.");
+
+            if (miembroActual.Rol != RolProyecto.Admin)
+                return Forbid();
+
+            var proyecto = await _context.Proyectos.FindAsync(proyectoId);
+            if (proyecto is null)
+                return NotFound();
+
+            _context.Proyectos.Remove(proyecto);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
     }
 
 
