@@ -10,31 +10,19 @@ namespace TaskFlow.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
-    public class ProyectosController : ControllerBase
+    public class ProyectosController : TaskFlowControllerBase
     {
-        private readonly TaskFlowDbContext _context;
-
-        public ProyectosController(TaskFlowDbContext context)
+        public ProyectosController(TaskFlowDbContext context) : base(context)
         {
-            _context = context;
         }
 
-        private int UsuarioActualId =>
-            int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-           private async Task<MiembroProyecto?> ObtenerMembresia(int proyectoId, int usuarioId)
-{
-    return await _context.MiembrosProyecto
-        .FirstOrDefaultAsync(mp => mp.ProyectoId == proyectoId && mp.UsuarioId == usuarioId);
-}
 
         [HttpGet]
         public async Task<ActionResult<List<ProyectoDto>>> Listar()
         {
             var usuarioId = UsuarioActualId;
 
-            var proyectos = await _context.MiembrosProyecto
+            var proyectos = await Context.MiembrosProyecto
                 .Where(mp => mp.UsuarioId == usuarioId)
                 .Select(mp => new ProyectoDto(
                     mp.Proyecto.Id,
@@ -63,8 +51,8 @@ namespace TaskFlow.Api.Controllers
                 Rol = RolProyecto.Admin
             });
 
-            _context.Proyectos.Add(proyecto);
-            await _context.SaveChangesAsync();
+            Context.Proyectos.Add(proyecto);
+            await Context.SaveChangesAsync();
 
             return Ok(new ProyectoDto(proyecto.Id, proyecto.Nombre, proyecto.Descripcion, RolProyecto.Admin.ToString()));
         }
@@ -82,26 +70,26 @@ namespace TaskFlow.Api.Controllers
             if (miembroActual.Rol != RolProyecto.Admin)
                 return Forbid();
 
-            var usuarioAAgregar = await _context.Usuarios
+            var usuarioAAgregar = await Context.Usuarios
                 .FirstOrDefaultAsync(u => u.Email == dto.EmailUsuario);
 
             if (usuarioAAgregar is null)
                 return BadRequest("No existe un usuario con ese email.");
 
-            var yaEsMiembro = await _context.MiembrosProyecto
+            var yaEsMiembro = await Context.MiembrosProyecto
                 .AnyAsync(mp => mp.ProyectoId == proyectoId && mp.UsuarioId == usuarioAAgregar.Id);
 
             if (yaEsMiembro)
                 return BadRequest("Ese usuario ya es miembro del proyecto.");
 
-            _context.MiembrosProyecto.Add(new MiembroProyecto
+            Context.MiembrosProyecto.Add(new MiembroProyecto
             {
                 ProyectoId = proyectoId,
                 UsuarioId = usuarioAAgregar.Id,
                 Rol = dto.Rol
             });
 
-            await _context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
             return NoContent();
         }
 
@@ -116,13 +104,13 @@ namespace TaskFlow.Api.Controllers
             if (miembroActual.Rol != RolProyecto.Admin)
                 return Forbid();
 
-            var proyecto = await _context.Proyectos.FindAsync(proyectoId);
+            var proyecto = await Context.Proyectos.FindAsync(proyectoId);
             if (proyecto is null)
                 return NotFound();
 
             proyecto.Nombre = dto.Nombre;
             proyecto.Descripcion = dto.Descripcion;
-            await _context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -138,12 +126,12 @@ namespace TaskFlow.Api.Controllers
             if (miembroActual.Rol != RolProyecto.Admin)
                 return Forbid();
 
-            var proyecto = await _context.Proyectos.FindAsync(proyectoId);
+            var proyecto = await Context.Proyectos.FindAsync(proyectoId);
             if (proyecto is null)
                 return NotFound();
 
-            _context.Proyectos.Remove(proyecto);
-            await _context.SaveChangesAsync();
+            Context.Proyectos.Remove(proyecto);
+            await Context.SaveChangesAsync();
 
             return NoContent();
         }

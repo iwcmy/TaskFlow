@@ -10,24 +10,12 @@ namespace TaskFlow.Api.Controllers
 {
     [ApiController]
     [Route("api/proyectos/{proyectoId}/tareas")]
-    [Authorize]
-    public class TareasController : ControllerBase
+    public class TareasController : TaskFlowControllerBase
     {
-        private readonly TaskFlowDbContext _context;
-
-        public TareasController(TaskFlowDbContext context)
+        public TareasController(TaskFlowDbContext context) : base(context)
         {
-            _context = context;
         }
 
-        private int UsuarioActualId =>
-            int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-        private async Task<MiembroProyecto?> ObtenerMembresia(int proyectoId, int usuarioId)
-        {
-            return await _context.MiembrosProyecto
-                .FirstOrDefaultAsync(mp => mp.ProyectoId == proyectoId && mp.UsuarioId == usuarioId);
-        }
 
         [HttpGet]
         public async Task<ActionResult<List<TareaDto>>> Listar(int proyectoId)
@@ -36,7 +24,7 @@ namespace TaskFlow.Api.Controllers
             if (miembro is null)
                 return NotFound("Proyecto no encontrado o no pertenecés a él.");
 
-            var tareas = await _context.Tareas
+            var tareas = await Context.Tareas
                 .Where(t => t.ProyectoId == proyectoId)
                 .Select(t => new TareaDto(
                     t.Id, t.Titulo, t.Descripcion, t.Estado.ToString(),
@@ -69,8 +57,8 @@ namespace TaskFlow.Api.Controllers
                 AsignadoAUsuarioId = dto.AsignadoAUsuarioId
             };
 
-            _context.Tareas.Add(tarea);
-            await _context.SaveChangesAsync();
+            Context.Tareas.Add(tarea);
+            await Context.SaveChangesAsync();
 
             return Ok(new TareaDto(tarea.Id, tarea.Titulo, tarea.Descripcion, tarea.Estado.ToString(), tarea.AsignadoAUsuarioId, null));
         }
@@ -82,13 +70,13 @@ namespace TaskFlow.Api.Controllers
             if (miembro is null)
                 return NotFound("Proyecto no encontrado o no pertenecés a él.");
 
-            var tarea = await _context.Tareas
+            var tarea = await Context.Tareas
                 .FirstOrDefaultAsync(t => t.Id == tareaId && t.ProyectoId == proyectoId);
             if (tarea is null)
                 return NotFound("Tarea no encontrada.");
 
             tarea.Estado = dto.Estado;
-            await _context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
 
             return NoContent();
         }
