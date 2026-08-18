@@ -12,8 +12,12 @@ namespace TaskFlow.Api.Controllers
     [Route("api/[controller]")]
     public class ProyectosController : TaskFlowControllerBase
     {
-        public ProyectosController(TaskFlowDbContext context) : base(context)
+
+        private readonly ILogger<ProyectosController> _logger;
+
+        public ProyectosController(TaskFlowDbContext context, ILogger<ProyectosController> logger) : base(context)
         {
+            _logger = logger;
         }
 
 
@@ -54,6 +58,8 @@ namespace TaskFlow.Api.Controllers
             Context.Proyectos.Add(proyecto);
             await Context.SaveChangesAsync();
 
+            _logger.LogInformation("Usuario {UsuarioId} creó el proyecto {ProyectoId}", usuarioId, proyecto.Id);
+            
             return Ok(new ProyectoDto(proyecto.Id, proyecto.Nombre, proyecto.Descripcion, RolProyecto.Admin.ToString()));
         }
 
@@ -68,7 +74,10 @@ namespace TaskFlow.Api.Controllers
                 return NotFound("Proyecto no encontrado o no pertenecés a él.");
 
             if (miembroActual.Rol != RolProyecto.Admin)
+            {
+                _logger.LogWarning("Usuario {UsuarioId} intentó agregar un miembro al proyecto {ProyectoId} sin ser Admin", UsuarioActualId, proyectoId);
                 return Forbid();
+            }
 
             var usuarioAAgregar = await Context.Usuarios
                 .FirstOrDefaultAsync(u => u.Email == dto.EmailUsuario);
