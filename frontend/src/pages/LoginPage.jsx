@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { login } from "../services/authService";
+import { useNavigate } from "react-router-dom";
+
 
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
+  
   async function manejarSubmit(evento) {
     evento.preventDefault();
     setError("");
@@ -13,7 +17,7 @@ function LoginPage() {
     try {
       const resultado = await login(email, password);
       localStorage.setItem("token", resultado.token);
-      console.log("Login exitoso", resultado);
+      navigate("/proyectos");
     } catch (err) {
       setError(err.message);
     }

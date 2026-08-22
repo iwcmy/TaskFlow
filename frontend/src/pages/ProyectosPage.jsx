@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { obtenerProyectos } from "../services/proyectosService";
+import { useNavigate } from "react-router-dom";
 
 function ProyectosPage() {
   const [proyectos, setProyectos] = useState([]);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function cargarProyectos() {
@@ -18,6 +20,13 @@ function ProyectosPage() {
     cargarProyectos();
   }, []);
 
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    navigate("/login");
+  }
+}, [navigate]);
+  
   return (
     <div>
       <h2>Mis proyectos</h2>
@@ -25,7 +34,7 @@ function ProyectosPage() {
       <ul>
         {proyectos.map((proyecto) => (
           <li key={proyecto.id}>
-            {proyecto.nombre} — {proyecto.descripcion} —{proyecto.rolDelUsuario} 
+            {proyecto.nombre} — {proyecto.descripcion} — {proyecto.rolDelUsuario} 
           </li>
         ))}
       </ul>
