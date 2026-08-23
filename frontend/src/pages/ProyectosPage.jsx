@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { obtenerProyectos, crearProyecto } from "../services/proyectosService";
 
 function ProyectosPage() {
@@ -51,7 +51,9 @@ function ProyectosPage() {
       <ul>
         {proyectos.map((proyecto) => (
           <li key={proyecto.id}>
-            {proyecto.nombre} — {proyecto.rolDelUsuario}
+            <Link to={`/proyectos/${proyecto.id}`}>
+              {proyecto.nombre} — {proyecto.rolDelUsuario}
+            </Link>
           </li>
         ))}
       </ul>
