@@ -43,11 +43,19 @@ function ProyectosPage() {
     }
   }
 
+  function manejarLogout() {
+    localStorage.removeItem("token");
+    navigate("/login");
+  }
+
   return (
     <div>
+      <div>
+        <h2>Mis proyectos</h2>
+        <button onClick={manejarLogout}>Cerrar sesión</button>
+      </div>
       <h2>Mis proyectos</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
-
       <ul>
         {proyectos.map((proyecto) => (
           <li key={proyecto.id}>
@@ -57,7 +65,6 @@ function ProyectosPage() {
           </li>
         ))}
       </ul>
-
       <h3>Crear nuevo proyecto</h3>
       <form onSubmit={manejarCrearProyecto}>
         <div>
