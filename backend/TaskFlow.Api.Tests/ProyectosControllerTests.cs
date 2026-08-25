@@ -109,5 +109,34 @@ namespace TaskFlow.Api.Tests
             Assert.NotNull(membresiaCreada);
             Assert.Equal(RolProyecto.Miembro, membresiaCreada.Rol);
         }
+
+        [Fact]
+        public async Task AgregarMiembro_CuandoUsuarioNoEsMiembroDelProyecto_DevuelveNotFound()
+        {
+
+            // Arrange
+            var context = CrearContextoEnMemoria();
+
+            var admin = new Usuario { Nombre = "Admin", Email = "admin@test.com", PasswordHash = "x" };
+            var nuevoUsuario = new Usuario { Nombre = "Nuevo", Email = "nuevo@test.com", PasswordHash = "x" };
+            var proyecto = new Proyecto { Nombre = "Proyecto de prueba" };
+
+            context.Usuarios.AddRange(admin, nuevoUsuario);
+            context.Proyectos.Add(proyecto);
+            await context.SaveChangesAsync();
+
+            var controller = new ProyectosController(context, NullLogger<ProyectosController>.Instance);
+            SimularUsuarioAutenticado(controller, admin.Id);
+
+            var dto = new AgregarMiembroDto(nuevoUsuario.Email, RolProyecto.Miembro);
+
+            // Act
+            var resultado = await controller.AgregarMiembro(proyecto.Id, dto);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(resultado);
+
+
+        }
     }
 }
