@@ -60,7 +60,7 @@ function ProyectosPage() {
         {proyectos.map((proyecto) => (
           <li key={proyecto.id}>
             <Link to={`/proyectos/${proyecto.id}`}>
-              {proyecto.nombre} — {proyecto.rolDelUsuario}
+              {proyecto.nombre} — {proyecto.descripcion} — {proyecto.rolDelUsuario}
             </Link>
           </li>
         ))}
