@@ -59,7 +59,7 @@ namespace TaskFlow.Api.Tests
             });
             await context.SaveChangesAsync();
 
-            var controller = new ProyectosController(context, NullLogger<ProyectosController>.Instance); ;
+            var controller = new ProyectosController(context, NullLogger<ProyectosController>.Instance);
             SimularUsuarioAutenticado(controller, miembroNoAdmin.Id);
 
             var dto = new AgregarMiembroDto("otro@test.com", RolProyecto.Miembro);
@@ -69,6 +69,45 @@ namespace TaskFlow.Api.Tests
 
             // Assert
             Assert.IsType<ForbidResult>(resultado);
+        }
+
+        [Fact]
+        public async Task AgregarMiembro_CuandoUsuarioEsAdmin_AgregaMiembroExitosamente()
+        {
+            // Arrange
+            var context = CrearContextoEnMemoria();
+
+            var admin = new Usuario { Nombre = "Admin", Email = "admin@test.com", PasswordHash = "x" };
+            var nuevoUsuario = new Usuario { Nombre = "Nuevo", Email = "nuevo@test.com", PasswordHash = "x" };
+            var proyecto = new Proyecto { Nombre = "Proyecto de prueba" };
+
+            context.Usuarios.AddRange(admin, nuevoUsuario);
+            context.Proyectos.Add(proyecto);
+            await context.SaveChangesAsync();
+
+            context.MiembrosProyecto.Add(new MiembroProyecto
+            {
+                UsuarioId = admin.Id,
+                ProyectoId = proyecto.Id,
+                Rol = RolProyecto.Admin
+            });
+            await context.SaveChangesAsync();
+
+            var controller = new ProyectosController(context, NullLogger<ProyectosController>.Instance);
+            SimularUsuarioAutenticado(controller, admin.Id);
+
+            var dto = new AgregarMiembroDto(nuevoUsuario.Email, RolProyecto.Miembro);
+
+            // Act
+            var resultado = await controller.AgregarMiembro(proyecto.Id, dto);
+
+            // Assert
+            Assert.IsType<NoContentResult>(resultado);
+
+            var membresiaCreada = await context.MiembrosProyecto
+                .FirstOrDefaultAsync(mp => mp.ProyectoId == proyecto.Id && mp.UsuarioId == nuevoUsuario.Id);
+            Assert.NotNull(membresiaCreada);
+            Assert.Equal(RolProyecto.Miembro, membresiaCreada.Rol);
         }
     }
 }
