@@ -27,7 +27,7 @@ function LoginPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-2">
-            <CheckCircle className="text-primary" size={45} strokeWidth={2} />
+            <CheckCircle className="text-primary" size={60} strokeWidth={2} />
             <span className="font-mono text-primary text-7xl font-black tracking-tight">
               TaskFlow
             </span>

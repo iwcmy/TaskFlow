@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #0F151B;
-  --color-surface: #161D23;
+  --color-ink: #161C23;
+  --color-surface: #12181F;
   --color-border: #283130;
   --color-text: #FFFFFF;
   --color-text-muted: #DDE3ED;
   --color-primary: #3EB489;
-  --color-primary-hover: #34a077;
+  --color-primary-hover: #008862;
   --color-accent: #E8A33D;
 
   --font-sans: "Inter", system-ui, sans-serif;
